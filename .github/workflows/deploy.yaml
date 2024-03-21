@@ -11,10 +11,10 @@ jobs:
     strategy:
       matrix:
         node-version: [16.x]
-        appname: ['frontend-lastest-application']
-        deploy-group: ['frontend-lastest-dg']
-        s3-bucket: ['20marchcicd']
-        s3-filename: ['20marchcicd-${{ github.sha }}']
+        appname: ['codedeploy_latest']
+        deploy-group: ['codedeploy_latest']
+        s3-bucket: ['codedeploylatest']
+        s3-filename: ['codedeploylatest-${{ github.sha }}']
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
