@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /var/www/html/20march
+    destination: /var/www/html/my-app
     overwrite: true
 file_exists_behavior: OVERWRITE
 hooks:
@@ -14,7 +14,7 @@ hooks:
     - location: scripts/after_install.sh
       timeout: 300
       runas: root
- ApplicationStart:
+  ApplicationStart:
     - location: scripts/application_start.sh
       timeout: 300
       runas: root
