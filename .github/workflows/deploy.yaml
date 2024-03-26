@@ -32,8 +32,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend-stage:${{ steps.version.outputs.tag }} -f frontend/Dockerfile .
-
+          cd frontend  # Change directory to frontend folder
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend-stage:${{ steps.version.outputs.tag }} -f Dockerfile .
 
       - name: Login to Docker Hub
         run: |
