@@ -42,10 +42,7 @@ jobs:
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Push Docker image
-        run: |
-               echo "Docker push command: docker push ***/frontend:8433843576:${{ steps.version.outputs.tag }}"
-                docker push ***/frontend:8433843576:${{ steps.version.outputs.tag }}
-
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend-stage:${{ steps.version.outputs.tag }}
         
       - name: chmod
         run: chmod -R +x  scripts/*
