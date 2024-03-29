@@ -76,5 +76,6 @@ jobs:
           sudo docker run -d --name $CONTAINER_NAME -p 4000:4000 --env-file ./.env ${{ secrets.DOCKER_USERNAME }}/easyvsl-stage:${{ steps.version.outputs.tag }}
           echo "Docker container started......."
           sudo docker image prune -a --force
+          ,
 
     
