@@ -1,34 +1,23 @@
-name: Deploy to EC2 Node.js CI/CD
+name: Deploy to Server
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
 
-  
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
 
-    strategy:
-      matrix:
-        node-version: [16.x]
-        appname: ["frontend-react"]
-        deploy-group: ["frontend-dg"]
-        s3-bucket: ["frontends32"]
-        s3-filename: ["frontends32-${{ github.sha }}"]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
-
-
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-
+          node-version: 14
 
       - name: Generate unique Docker image tag
         id: version
@@ -36,19 +25,15 @@ jobs:
 
       - name: Build Docker image
         run: |
-          cd frontend  # Change directory to frontend folder
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend-stage:${{ steps.version.outputs.tag }} -f Dockerfile .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend-stage:${{ steps.version.outputs.tag }} .
 
       - name: Login to Docker Hub
         run: |
-          echo "Docker Hub username: ${{ secrets.DOCKER_USERNAME }}"
+          echo "Docker Hub username: ${{ secrets.DOCKERHUB_USERNAME }}"
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend-stage:${{ steps.version.outputs.tag }}
-        
-      - name: chmod
-        run: chmod -R +x  scripts/*
 
       - name: SSH to Instance
         env:
@@ -59,22 +44,23 @@ jobs:
           chmod 600 my-ssh-key.pem
 
           # Get the ID of the running container
-       
-            RUNNING_CONTAINER=$(ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} "sudo docker ps --filter 'name=frontend-staging' --format '{{.ID}}'")
- 
+          RUNNING_CONTAINER=$(ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} "sudo docker ps --filter \"name=frontend-stage\" --format \"{{.ID}}\"")
 
-      
-          RUNNING_CONTAINER=$(ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} "sudo docker ps --filter \"name=frontend-staging\" --format \"{{.ID}}\"")
+          if [ -n "$RUNNING_CONTAINER" ]; then
+            echo "Stopping and removing existing container: $RUNNING_CONTAINER"
+            ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} "sudo docker stop $RUNNING_CONTAINER || true"
+            ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} "sudo docker rm $RUNNING_CONTAINER || true"
+          else
+            echo "No existing container found with name: frontend-stage"
+          fi
 
           ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} '
-          sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/frontend-stage:${{ steps.version.outputs.tag }}
+          sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/frontend-stage:${{ steps.version.outputs.tag }}
           UNIQUE_ID=$(date +%s)
-          CONTAINER_NAME="frontend-staging-${UNIQUE_ID}"
+          CONTAINER_NAME="frontend-stage-${UNIQUE_ID}"
           echo "Starting Docker container..."
-          sudo docker run -d --name $CONTAINER_NAME -p 4000:3000  ${{ secrets.DOCKER_USERNAME }}/frontend-stage:${{ steps.version.outputs.tag }}
+          sudo docker run -d --name $CONTAINER_NAME -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/frontend-stage:${{ steps.version.outputs.tag }}
           echo "Docker container started......."
           sudo docker image prune -a --force
           '
-
-    
