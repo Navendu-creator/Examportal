@@ -59,7 +59,9 @@ jobs:
           chmod 600 my-ssh-key.pem
 
           # Get the ID of the running container
-          RUNNING_CONTAINER=$(ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} "sudo docker ps --filter \"frontend-staging\" --format \"{{.ID}}\"")
+       
+            RUNNING_CONTAINER=$(ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} "sudo docker ps --filter 'name=frontend-staging' --format '{{.ID}}'")
+ 
 
       
           RUNNING_CONTAINER=$(ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} "sudo docker ps --filter \"name=frontend-staging\" --format \"{{.ID}}\"")
