@@ -61,7 +61,8 @@ jobs:
           # Get the ID of the running container
           RUNNING_CONTAINER=$(ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} "sudo docker ps --filter \"name=easyvsl-staging\" --format \"{{.ID}}\"")
 
-       
+      
+          RUNNING_CONTAINER=$(ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} "sudo docker ps --filter \"name=easyvsl-staging\" --format \"{{.ID}}\"")
 
           ssh -o StrictHostKeyChecking=no -i my-ssh-key.pem $USER_NAME@${HOSTNAME} '
           sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
@@ -72,6 +73,6 @@ jobs:
           sudo docker run -d --name $CONTAINER_NAME -p 4000:4000 --env-file ./.env ${{ secrets.DOCKER_USERNAME }}/easyvsl-stage:${{ steps.version.outputs.tag }}
           echo "Docker container started......."
           sudo docker image prune -a --force
-          ,
+          '
 
     
