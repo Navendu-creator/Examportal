@@ -19,6 +19,7 @@ jobs:
         s3-filename: ["frontends32-${{ github.sha }}"]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
+
     steps:
       - uses: actions/checkout@v3
 
